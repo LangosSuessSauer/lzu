@@ -30,17 +30,17 @@ public class ComponentWrapper implements Runnable {
     @Override
     public void run() {
 
-            if (state!=State.RUNNING) {
-                executeMethod(invokeClass, invokeMethodName);
-                state = State.RUNNING;
-                logger.info("Component was started.");
-            } else {
-                logger.info("Component is already running.");
-            }
+        if (state != State.RUNNING) {
+            executeMethod(invokeClass, invokeMethodName);
+            state = State.RUNNING;
+            logger.info("Component was started.");
+        } else {
+            logger.info("Component is already running.");
+        }
 
     }
 
-    private void executeMethod(Class clazz, String methodName){
+    private void executeMethod(Class clazz, String methodName) {
         try {
             Constructor[] constructors = clazz.getConstructors();
             if (constructors.length > 0) {
@@ -51,25 +51,21 @@ public class ComponentWrapper implements Runnable {
             }
         } catch (InvocationTargetException e) {
             throw new RuntimeException(e);
-        }
-        catch (IllegalAccessException e) {
+        } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
-        }
-        catch (InstantiationException e) {
+        } catch (InstantiationException e) {
             throw new RuntimeException(e);
-        }
-        catch (NoSuchMethodException e) {
+        } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
     }
 
     public void stop() {
-        if (state==state.RUNNING) {
+        if (state == state.RUNNING) {
             executeMethod(stopClass, stopMethodeName);
             state = state.STOPPED;
             logger.info("Component was stopped.");
-            }
-        else {
+        } else {
             logger.info("Component is already stopped.");
         }
     }
@@ -105,12 +101,13 @@ public class ComponentWrapper implements Runnable {
     public enum State {
         DEPLOYED("deployed"),
         RUNNING("running"),
-        STOPPED("stopped")
-        ;
+        STOPPED("stopped");
         private final String text;
+
         State(final String text) {
             this.text = text;
         }
+
         @Override
         public String toString() {
             return text;

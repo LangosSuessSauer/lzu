@@ -27,9 +27,10 @@ public class ComponentAssembler {
     private Deque<ComponentOperation> componentOperations = new ArrayDeque<>();
     private List<ComponentWrapper> componentWrappers = new ArrayList<>();
 
-    private ComponentAssembler()  {}
+    private ComponentAssembler() {
+    }
 
-    public static ComponentAssembler getInstance ()  {
+    public static ComponentAssembler getInstance() {
         if (ComponentAssembler.instance == null) {
             ComponentAssembler.instance = new ComponentAssembler();
         }
@@ -40,18 +41,18 @@ public class ComponentAssembler {
         componentOperations.add(componentOperation);
     }
 
-    public void executeComponentOperations(){
-        while(!componentOperations.isEmpty()){
+    public void executeComponentOperations() {
+        while (!componentOperations.isEmpty()) {
             componentOperations.pop().execute();
             logger.info("Operation was executed.");
         }
     }
 
-    public ComponentWrapper loadComponentFromJar(Component component){
+    public ComponentWrapper loadComponentFromJar(Component component) {
         String path = ComponentWrapper.class.getProtectionDomain().getCodeSource().getLocation().getPath();
         String decodedPath = null;
         try {
-            decodedPath = URLDecoder.decode(path + "../../lib/"+component.toString(), "UTF-8");
+            decodedPath = URLDecoder.decode(path + "../../lib/" + component.toString(), "UTF-8");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
@@ -66,14 +67,14 @@ public class ComponentAssembler {
         Enumeration<JarEntry> e = jarFile.entries();
         URL[] urls = new URL[0];
         try {
-            urls = new URL[]{ new URL("jar:file:" + pathToJar+"!/") };
+            urls = new URL[]{new URL("jar:file:" + pathToJar + "!/")};
         } catch (MalformedURLException ex) {
             throw new RuntimeException(ex);
         }
         URLClassLoader cl = URLClassLoader.newInstance(urls);
 
         List<Class> classList = new ArrayList<>();
-        while(e.hasMoreElements()) {
+        while (e.hasMoreElements()) {
             JarEntry je = e.nextElement();
             if (je.isDirectory() || !je.getName().endsWith(".class")) continue;
 
@@ -90,21 +91,21 @@ public class ComponentAssembler {
 
         Class<? extends Annotation> startAnnotation = null;
         Class<? extends Annotation> stopAnnotation = null;
-        for(Class clazz: classList) {
-            String [] classNameParts = clazz.getName().split("\\.");
-            if(classNameParts[classNameParts.length-1].equals("Start")){
+        for (Class clazz : classList) {
+            String[] classNameParts = clazz.getName().split("\\.");
+            if (classNameParts[classNameParts.length - 1].equals("Start")) {
                 startAnnotation = clazz;
             }
-            if(classNameParts[classNameParts.length-1].equals("Stop")){
+            if (classNameParts[classNameParts.length - 1].equals("Stop")) {
                 stopAnnotation = clazz;
             }
         }
 
         String invokeMethodName = "", stopMethodName = "";
         Class invokeClass = null, stopClass = null;
-        for(Class clazz: classList){
+        for (Class clazz : classList) {
             Constructor[] constructors = clazz.getConstructors();
-            if (!Modifier.isAbstract(clazz.getModifiers()) &&  constructors.length > 0) {
+            if (!Modifier.isAbstract(clazz.getModifiers()) && constructors.length > 0) {
                 Constructor<?> constructor = constructors[0];
                 Object instance = null;
                 try {
@@ -118,28 +119,28 @@ public class ComponentAssembler {
                 }
                 for (Method method : instance.getClass().getDeclaredMethods()) {
                     if (method.isAnnotationPresent(startAnnotation)) {
-                        invokeMethodName= method.getName();
+                        invokeMethodName = method.getName();
                         invokeClass = clazz;
                         logger.info("Start Method was found");
                     }
                     if (method.isAnnotationPresent(stopAnnotation)) {
-                        stopMethodName= method.getName();
+                        stopMethodName = method.getName();
                         stopClass = clazz;
                         logger.info("Stop Method was found");
                     }
                 }
             }
         }
-        if(Objects.isNull(invokeClass)) logger.info("Invoke Method wasn't found.");
-        if(Objects.isNull(stopClass)) logger.info("Invoke Method wasn't found.");
+        if (Objects.isNull(invokeClass)) logger.info("Invoke Method wasn't found.");
+        if (Objects.isNull(stopClass)) logger.info("Invoke Method wasn't found.");
 
         ComponentWrapper componentWrapper = new ComponentWrapper(classList, component.toString(), invokeMethodName, invokeClass, stopMethodName, stopClass);
         componentWrappers.add(componentWrapper);
         return componentWrapper;
     }
 
-    public void stopAllThreads(){
-        for(ComponentWrapper componentWrapper: componentWrappers){
+    public void stopAllThreads() {
+        for (ComponentWrapper componentWrapper : componentWrappers) {
             addComponentOperation(new StopComponentOperation(componentWrapper));
         }
         executeComponentOperations();
@@ -152,12 +153,13 @@ public class ComponentAssembler {
 
     public enum Component {
         COMPONENT_A("componentA.jar"),
-        COMPONENT_B("componentB.jar")
-        ;
+        COMPONENT_B("componentB.jar");
         private final String text;
+
         Component(final String text) {
             this.text = text;
         }
+
         @Override
         public String toString() {
             return text;

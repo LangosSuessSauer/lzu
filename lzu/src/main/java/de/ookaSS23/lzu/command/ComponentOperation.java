@@ -5,5 +5,6 @@ import java.util.concurrent.Executors;
 
 public interface ComponentOperation {
     ExecutorService threadPool = Executors.newFixedThreadPool(5);
+
     void execute();
 }
